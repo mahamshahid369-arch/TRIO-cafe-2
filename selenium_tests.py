@@ -6,7 +6,7 @@ import time
 import unittest
 
 # Path to your HTML file
-FILE_PATH = "file:///C:/Users/Maham/Downloads/FA23-BCS-213(Project Trio Cafe)/trio_cafe_Project/trio-cafe.html"
+FILE_PATH = "file:///C:/Users/zaina/Downloads/FA23-BCS-171/TRIO cafe/FA23-BCS-171/frontend/trio-cafe.html"
 
 class TrioCafeTests(unittest.TestCase):
 
