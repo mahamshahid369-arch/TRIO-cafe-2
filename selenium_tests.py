@@ -10,7 +10,7 @@ class TrioCafeTests(unittest.TestCase):
 
     def setUp(self):
         options = webdriver.ChromeOptions()
-        options.add_argument("--headless")           # Run in background
+        options.add_argument("--headless")           # Run in background (required for CI/CD)
         options.add_argument("--no-sandbox")
         options.add_argument("--disable-dev-shm-usage")
         options.add_argument("--window-size=1920,1080")
@@ -25,6 +25,7 @@ class TrioCafeTests(unittest.TestCase):
 
     # TEST 1: Verify homepage loads
     def test_01_homepage_loads(self):
+        # Dynamically finds the path to your frontend file
         file_path = "file://" + os.path.abspath("frontend/trio-cafe.html")
         self.driver.get(file_path)
         time.sleep(2)
