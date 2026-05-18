@@ -1,0 +1,83 @@
+version: "3.9"
+
+# ─────────────────────────────────────────────────────────────────────────────
+#  Trio Cafe – Docker Compose (3-Tier: Frontend + Backend + Database)
+# ─────────────────────────────────────────────────────────────────────────────
+
+services:
+
+  # ── 1. DATABASE (MongoDB) ──────────────────────────────────────────────────
+  database:
+    image: mongo:7.0
+    container_name: trio-cafe-db
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: triocafe123
+      MONGO_INITDB_DATABASE: triocafe
+    ports:
+      - "27017:27017"                      # expose for local debugging
+    volumes:
+      - mongo_data:/data/db               # persist DB data across restarts
+      - ./mongo-init:/docker-entrypoint-initdb.d  # auto-seed on first run
+    networks:
+      - trio-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── 2. BACKEND (Node.js / Express) ────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend              # folder containing backend Dockerfile
+      dockerfile: Dockerfile
+    container_name: trio-cafe-backend
+    restart: unless-stopped
+    environment:
+      PORT: 3001
+      MONGO_URI: mongodb://admin:triocafe123@database:27017/triocafe?authSource=admin
+      NODE_ENV: production
+    ports:
+      - "3001:3001"                   # expose for direct API testing
+    depends_on:
+      database:
+        condition: service_healthy    # wait for DB to be ready
+    networks:
+      - trio-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3001/"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+  # ── 3. FRONTEND (Nginx serving static HTML) ───────────────────────────────
+  frontend:
+    build:
+      context: ./frontend             # folder containing frontend Dockerfile
+      dockerfile: Dockerfile
+    container_name: trio-cafe-frontend
+    restart: unless-stopped
+    ports:
+      - "8081:80"                     # visit http://localhost:8080 in browser
+    depends_on:
+      backend:
+        condition: service_healthy    # wait for backend to be ready
+    networks:
+      - trio-network
+
+# ─────────────────────────────────────────────────────────────────────────────
+#  Shared Network
+# ─────────────────────────────────────────────────────────────────────────────
+networks:
+  trio-network:
+    driver: bridge
+    name: trio-cafe-network
+
+# ─────────────────────────────────────────────────────────────────────────────
+#  Named Volume (persists MongoDB data)
+# ─────────────────────────────────────────────────────────────────────────────
+volumes:
+  mongo_data:
+    name: trio-cafe-mongo-data
