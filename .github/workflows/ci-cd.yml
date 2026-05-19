@@ -1,4 +1,4 @@
-# Viva Final Deployment Fix - May 19
+# Trio Cafe CI/CD - Build, Test, and Docker Push
 name: Trio Cafe CI/CD Pipeline
 
 on:
@@ -70,24 +70,4 @@ jobs:
           push: true
           tags: |
             laibaafzaal98/trio-cafe-frontend:latest
-            laibaafzaal98/trio-cafe-frontend:${{ github.sha }}
-
-      # --- STAGE 4: DEPLOYMENT TO KUBERNETES (Task B1.4) ---
-      - name: Set Kubernetes Context
-        uses: azure/k8s-set-context@v3
-        with:
-          method: kubeconfig
-          kubeconfig: ${{ secrets.KUBECONFIG }}
-
-      - name: Deploy to AKS
-        uses: azure/k8s-deploy@v4
-        with:
-          namespace: trio-cafe
-          manifests: |
-            k8s/namespace.yaml
-            k8s/mongodb-deployment.yaml
-            k8s/backend-deployment.yaml
-            k8s/frontend-deployment.yaml
-          images: |
-            laibaafzaal98/trio-cafe-backend:${{ github.sha }}
             laibaafzaal98/trio-cafe-frontend:${{ github.sha }}
